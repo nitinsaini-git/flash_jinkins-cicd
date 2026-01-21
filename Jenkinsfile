@@ -1,40 +1,47 @@
 pipeline {
     agent any
 
+    environment {
+        IMAGE_NAME = "flash_app:latest"
+    }
+
     stages {
-        stage('checkout') {
+
+        stage('Checkout') {
             steps {
                 git 'https://github.com/nitinsaini-git/flash_jinkins-cicd.git'
             }
         }
-        stage('Build Docker Image  ') {
+
+        stage('Build Docker Image') {
             steps {
                 sh 'docker build -t $IMAGE_NAME .'
             }
         }
+
         stage('Run Unit Tests') {
             steps {
-                sh '''
-                docker run --rm $IMAGE_NAME pytest 
-                ''' 
+                sh 'docker run --rm $IMAGE_NAME pytest'
             }
         }
+
         stage('Deploy') {
             steps {
                 sh '''
-                docker stop flash_app  || true  
-                docker rm flash_app  || true    
+                docker stop flash_app || true
+                docker rm flash_app || true
                 docker run -d -p 5000:5000 --name flash_app $IMAGE_NAME
-                ''' 
-            }   
+                '''
+            }
         }
-        post {
-            success {
-                echo 'Pipeline completed successfully!'
-            }   
-            failure {
-                echo 'Pipeline failed. Please check the logs.'
-            }   
+    }
+
+    post {
+        success {
+            echo 'Pipeline completed successfully!'
         }
-    }   
+        failure {
+            echo 'Pipeline failed. Please check the logs.'
+        }
+    }
 }
